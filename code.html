@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BellNode Technologies - Interactive Universe</title>
+    <style>
+        /* --- CSS Variables & Basic Styles (Unchanged) --- */
+        :root { --bg-color: #010206; --primary-glow: #00e5ff; --secondary-glow: #8f00ff; --tertiary-glow: #00ff88; --text-color: #e0e5f0; --text-muted: #a0a8c0; --panel-bg: rgba(10, 20, 40, 0.8); --panel-border: rgba(0, 229, 255, 0.25); --card-bg: rgba(15, 30, 55, 0.85); --card-border: rgba(0, 255, 136, 0.35); --hover-highlight: #00e5ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { overflow: hidden; font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: grab; } #canvas-container:active { cursor: grabbing; }
+        .ui-overlay { position: fixed; z-index: 10; padding: 15px; }
+        .info-panel-container { position: fixed; z-index: 12; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.5s ease-out, visibility 0s linear 0.5s, transform 0.5s ease-out; background-color: var(--panel-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--panel-border); border-radius: 15px; padding: 30px; box-shadow: 0 0 30px rgba(0, 180, 255, 0.15); transform: translateY(20px); } .info-panel-container.visible { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.5s ease-in 0.1s, visibility 0s linear 0s, transform 0.5s ease-in 0.1s; transform: translateY(0); } .info-panel-container h2 { color: var(--primary-glow); text-align: center; margin-bottom: 20px; font-size: 1.5em; text-shadow: 0 0 8px var(--primary-glow); border-bottom: 1px solid var(--panel-border); padding-bottom: 12px; } .info-panel-container p { color: var(--text-muted); line-height: 1.7; font-size: 0.9em; margin-bottom: 15px; }
+        #nav-bar { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 15; background-color: var(--panel-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 30px; padding: 8px 15px; border: 1px solid var(--panel-border); box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); display: flex; gap: 10px; pointer-events: auto; } .nav-button { background: none; border: none; color: var(--text-muted); padding: 8px 18px; font-size: 0.95em; font-weight: 500; cursor: pointer; border-radius: 20px; transition: all 0.3s ease; text-shadow: 0 0 3px rgba(0, 229, 255, 0.2); } .nav-button:hover, .nav-button.active { color: #ffffff; background-color: rgba(0, 229, 255, 0.15); text-shadow: 0 0 8px var(--primary-glow); }
+        #header { top: 15px; left: 20px; display: flex; align-items: center; pointer-events: none; z-index: 11; } #header img#company-logo { height: 45px; width: auto; margin-right: 12px; filter: brightness(0) invert(1); opacity: 0.9; } #header h1 { font-size: 1.5em; font-weight: 600; color: var(--text-color); text-shadow: 0 0 8px var(--primary-glow); }
+        #tagline { top: 65px; left: 35px; font-size: 0.85em; color: var(--text-muted); max-width: 350px; text-shadow: 0 0 3px rgba(0, 0, 0, 0.5); pointer-events: none; z-index: 11; } #instructions { bottom: 15px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.6); padding: 6px 12px; border-radius: 5px; font-size: 0.8em; color: var(--text-muted); border: 1px solid #333; text-align: center; pointer-events: none; z-index: 11;}
+        #home-info-overlay { position: fixed; left: 0; top: 50%; transform: translate(-100%, -50%); width: 300px; max-height: 80vh; overflow-y: auto; z-index: 12; background-color: var(--panel-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--panel-border); border-left: none; border-radius: 0 15px 15px 0; padding: 30px 30px 30px 40px; box-shadow: 5px 0 25px rgba(0, 180, 255, 0.1); opacity: 0; visibility: hidden; pointer-events: none; transition: transform 0.6s ease-out, opacity 0.6s ease-out, visibility 0s linear 0.6s; } #home-info-overlay.visible { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(0, -50%); transition: transform 0.6s ease-out 0.2s, opacity 0.6s ease-out 0.2s, visibility 0s linear 0s; } #home-info-overlay h2 { color: var(--primary-glow); text-align: left; margin-bottom: 15px; font-size: 1.4em; text-shadow: 0 0 8px var(--primary-glow); border-bottom: none; padding-bottom: 0; } #home-info-overlay p { color: var(--text-muted); line-height: 1.6; font-size: 0.85em; margin-bottom: 20px; } #home-info-overlay .social-links { margin-top: 15px; text-align: left; } #home-info-overlay .social-links a { color: var(--primary-glow); text-decoration: none; margin-right: 20px; display: inline-block; transition: color 0.3s, transform 0.3s; } #home-info-overlay .social-links a:hover { color: #fff; transform: scale(1.1); } #home-info-overlay .social-links svg { height: 22px; width: 22px; fill: currentColor; vertical-align: middle; transition: fill 0.3s; } #home-info-overlay .social-links a:hover svg { filter: drop-shadow(0 0 5px var(--primary-glow)); }
+        #services-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 12; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; padding: 80px 40px 40px 40px; background: radial-gradient(circle, rgba(5, 10, 20, 0.7) 0%, rgba(2, 4, 10, 0.9) 70%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.5s ease-out, visibility 0s linear 0.5s; } #services-container.visible { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.5s ease-in, visibility 0s linear 0s; } .service-card { background-color: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--card-border); border-radius: 12px; padding: 25px; width: 300px; min-height: 350px; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0, 255, 136, 0.1), inset 0 0 10px rgba(0, 255, 136, 0.05); opacity: 0; transform: translateY(30px) scale(0.95); transition: transform 0.4s ease-out 0.1s, box-shadow 0.3s ease, opacity 0.4s ease-out 0.1s; } #services-container.visible .service-card { opacity: 1; transform: translateY(0) scale(1); } #services-container.visible .service-card:nth-child(2) { transition-delay: 0.2s; } #services-container.visible .service-card:nth-child(3) { transition-delay: 0.3s; } .service-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 0 35px rgba(0, 255, 136, 0.3), inset 0 0 15px rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.5); } .service-card h3 { color: var(--tertiary-glow); text-align: center; margin-bottom: 15px; font-size: 1.3em; text-shadow: 0 0 8px var(--tertiary-glow); border-bottom: 1px solid var(--card-border); padding-bottom: 10px; } .service-card p { font-size: 0.85em; color: var(--text-muted); line-height: 1.6; flex-grow: 1; margin-bottom: 15px; } .service-card ul { list-style: none; padding-left: 0; margin-bottom: 20px; } .service-card li { font-size: 0.8em; color: var(--text-color); padding: 3px 0 3px 15px; position: relative; } .service-card li::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background-color: var(--tertiary-glow); border-radius: 50%; box-shadow: 0 0 5px var(--tertiary-glow); } .service-card .card-button { display: block; margin-top: auto; padding: 8px 15px; background: none; border: 1px solid var(--tertiary-glow); color: var(--tertiary-glow); text-align: center; text-decoration: none; border-radius: 20px; font-size: 0.85em; font-weight: 500; cursor: pointer; transition: all 0.3s ease; } .service-card .card-button:hover { background-color: rgba(0, 255, 136, 0.15); color: #fff; box-shadow: 0 0 10px var(--tertiary-glow); transform: scale(1.05); }
+        #contact-info-container { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; text-align: center; } #contact-info-container .email-button { display: inline-block; margin-top: 20px; padding: 12px 30px; background: linear-gradient(90deg, var(--secondary-glow), var(--primary-glow)); color: var(--bg-color); text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 1em; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(143, 0, 255, 0.4); } #contact-info-container .email-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 0 25px rgba(143, 0, 255, 0.6); }
+        #detail-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 500px; background-color: var(--panel-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--panel-border); border-radius: 15px; padding: 30px; z-index: 20; opacity: 0; visibility: hidden; transition: opacity 0.4s ease-out, visibility 0.4s ease-out, transform 0.4s ease-out; pointer-events: auto; box-shadow: 0 0 35px rgba(0, 180, 255, 0.25); color: var(--text-color); } #detail-panel.visible { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); } #detail-panel h2 { color: var(--primary-glow); margin-bottom: 15px; border-bottom: 1px solid var(--panel-border); padding-bottom: 10px; text-align: center; font-size: 1.6em; text-shadow: 0 0 10px var(--primary-glow); } #detail-panel p { margin-bottom: 20px; line-height: 1.7; font-size: 0.9em; color: var(--text-muted); } #detail-panel .tags { display: block; margin-bottom: 25px; text-align: center; } #detail-panel .tag { display: inline-block; background-color: rgba(0, 229, 255, 0.1); color: var(--primary-glow); padding: 5px 12px; border-radius: 15px; font-size: 0.75em; margin: 3px; border: 1px solid rgba(0, 229, 255, 0.2); } #detail-panel a.visit-link { display: block; width: fit-content; margin: 20px auto 0 auto; padding: 12px 25px; background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow)); color: var(--bg-color); text-decoration: none; border-radius: 25px; font-weight: bold; text-align: center; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); } #detail-panel a.visit-link:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 0 25px rgba(0, 229, 255, 0.6); } #close-detail { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-muted); font-size: 1.8em; cursor: pointer; line-height: 1; padding: 5px; transition: color 0.3s ease, transform 0.3s ease; } #close-detail:hover { color: #fff; transform: rotate(90deg); }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-color); font-size: 1.2em; transition: opacity 0.7s ease-out 0.2s; } #loading-screen.fade-out { opacity: 0; pointer-events: none; } .loader { width: 60px; height: 60px; border-radius: 50%; display: inline-block; position: relative; border-top: 4px solid var(--primary-glow); border-right: 4px solid transparent; box-sizing: border-box; animation: spin 1s linear infinite; margin-bottom: 25px; box-shadow: 0 0 15px var(--primary-glow); } .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; width: 60px; height: 60px; border-radius: 50%; border-bottom: 4px solid var(--secondary-glow); border-left: 4px solid transparent; animation: spin 0.5s linear infinite reverse; box-shadow: 0 0 15px var(--secondary-glow); } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.164.1/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/", "@tweenjs/tween.js": "https://unpkg.com/@tweenjs/tween.js@23.1.1/dist/tween.esm.js" } } </script>
+</head>
+<body>
+    <div id="loading-screen"><div class="loader"></div><p>Initializing BellNode Universe...</p></div>
+    <nav id="nav-bar"> <button class="nav-button" id="nav-home">Home</button> <button class="nav-button" id="nav-projects">Projects</button> <button class="nav-button" id="nav-services">Services</button> <button class="nav-button" id="nav-contact">Contact Us</button> </nav>
+
+    <!-- Updated Home Info Overlay -->
+    <div id="home-info-overlay">
+         <h2>BellNode Technologies</h2>
+         <p>Pioneering transformative solutions by harnessing the power of Artificial Intelligence, Machine Learning, Data Science, and next-gen tech. We partner with businesses to unlock potential, drive innovation, and achieve growth.</p>
+         <div class="social-links">
+              <a href="https://www.linkedin.com/in/bellnode-technology/" target="_blank" title="LinkedIn"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> </a>
+              <a href="https://github.com/BellNodeTechnology" target="_blank" title="GitHub"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg> </a>
+         </div>
+    </div>
+
+    <div id="services-container"></div>
+    <div id="contact-info-container" class="info-panel-container"> <h2>Get In Touch</h2> <p>Have a project in mind or want to learn more? Reach out!</p> <a href="mailto:asadnadeem7788@gmail.com?subject=Inquiry%20from%20BellNode%20Website" class="email-button">Send Us An Email</a> </div>
+
+    <div id="canvas-container"></div>
+    <div id="header" class="ui-overlay"> <img id="company-logo" src="bellnode1-removebg-preview.png" alt="BellNode Logo"><h1>BellNode</h1> </div>
+    <div id="tagline" class="ui-overlay">Revolutionizing Businesses with AI, ML, Data Science, and Next-Gen Technology Solutions</div>
+    <div id="instructions" class="ui-overlay">Click & Drag | Use Top Navigation | Click Objects (Projects View)</div>
+    <div id="detail-panel"> <button id="close-detail">×</button> <h2 id="detail-title">Details</h2> <p id="detail-description"></p> <div id="detail-tags" class="tags"></div> <a id="detail-link" href="#" target="_blank" class="visit-link">Visit Link</a> </div>
+
+    <script type="module">
+        // --- Import Modules (Unchanged) ---
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import TWEEN from '@tweenjs/tween.js';
+
+        // --- Scene Setup Variables (Updated) ---
+        let scene, camera, renderer, controls, composer, clock;
+        let raycaster, mouse, interactionPlane;
+        let backgroundParticles, fallingStars; let originalBgParticlePos; let fallingStarVelocities;
+        const interactiveObjects = []; const projectMeshes = []; const serviceMeshes = {};
+        let homeNebula, homeNebulaLight, distantSun; const distantCelestials = [];
+        let contactElement;
+        let INTERSECTED; let currentTween = null; let currentView = 'home'; let particlesInteract = true;
+        const tempQuaternion = new THREE.Quaternion(); const tempVector3 = new THREE.Vector3(); // Reusable vector
+        const tempVector3_2 = new THREE.Vector3(); // Another reusable vector to avoid conflicts in loops
+        const particleInteractionRadius = 4; const particlePushStrength = 0.08; const particleReturnSpeed = 0.03;
+        const fallingStarCount = 1500; const fallingStarSpeed = 0.15; const fallingStarResetY = 60;
+
+        // --- DOM Elements ---
+        const canvasContainer = document.getElementById('canvas-container'); const detailPanel = document.getElementById('detail-panel'); const detailTitle = document.getElementById('detail-title'); const detailDescription = document.getElementById('detail-description'); const detailTags = document.getElementById('detail-tags'); const detailLink = document.getElementById('detail-link'); const closeDetailButton = document.getElementById('close-detail'); const loadingScreen = document.getElementById('loading-screen'); const navButtons = document.querySelectorAll('.nav-button'); const homeInfoOverlay = document.getElementById('home-info-overlay'); /* USE THIS */ const servicesContainer = document.getElementById('services-container'); const contactInfoContainer = document.getElementById('contact-info-container');
+
+        // --- Camera Targets (Unchanged) ---
+        const TARGET_POS_HOME = new THREE.Vector3(0, 2, 20); const TARGET_LOOKAT_HOME = new THREE.Vector3(0, 0, 0); const TARGET_POS_PROJECTS = new THREE.Vector3(0, 0, 12); const TARGET_LOOKAT_PROJECTS = new THREE.Vector3(0, 0.5, 0); const TARGET_POS_SERVICES_VIEW = new THREE.Vector3(0, 2, 15); const TARGET_LOOKAT_SERVICES_VIEW = new THREE.Vector3(0, 1, 0); const TARGET_POS_CONTACT = new THREE.Vector3(5, 2, 10); const TARGET_LOOKAT_CONTACT = new THREE.Vector3(0, 1, -5);
+
+        // --- Content Data (Unchanged) ---
+        const contentData = [ { id: 'project_3d_tour', type: 'project', title: '3D Virtual Walkthrough', description: 'Developed an immersive 3D virtual walkthrough website, allowing users to explore spaces digitally.', tags: ['3D', 'Web Dev', 'Real Estate', 'Tours'], link: 'https://3dvirtualtoursny.com/', position: new THREE.Vector3(-6, 1, 0), color: 0x00ffff, shape: 'sphere' }, { id: 'project_personal_brands', type: 'project', title: 'Personalized Brands Site', description: 'Created a dynamic website focused on personalized branding and content delivery.', tags: ['Web Dev', 'Branding', 'Portfolio', 'CMS'], link: 'https://ashleydelbello.com/', position: new THREE.Vector3(0, -1, -6), color: 0xff00ff, shape: 'cube' }, { id: 'project_educational', type: 'project', title: 'Educational Platform', description: 'Built an educational website providing resources and tools for learning.', tags: ['Web Dev', 'Education', 'E-Learning'], link: 'https://champrep.com/', position: new THREE.Vector3(6, 1, 0), color: 0xffff00, shape: 'torus' }, { id: 'service_ai_ml', type: 'service', title: 'AI & Machine Learning', description: 'Leveraging cutting-edge AI and ML algorithms to drive business intelligence, automation, and predictive analytics.', tags: ['AI', 'ML', 'Automation', 'Analytics'], keyFeatures: ['Predictive Modeling', 'NLP Solutions', 'Computer Vision', 'Custom Algorithms'], link: '#', position: new THREE.Vector3(-4, 4, -4), color: 0x00ff88, shape: 'octahedron' }, { id: 'service_data_science', type: 'service', title: 'Data Science & Analytics', description: 'Transforming raw data into actionable insights through advanced statistical modeling, visualization, and data engineering.', tags: ['Data Science', 'Big Data', 'BI', 'Viz'], keyFeatures: ['Insight Discovery', 'Data Pipelines', 'Interactive Dashboards', 'Cloud Integration'], link: '#', position: new THREE.Vector3(4, 4, 4), color: 0xffa500, shape: 'dodecahedron' }, { id: 'service_nextgen_tech', type: 'service', title: 'Next-Gen Technology', description: 'Exploring and implementing emerging technologies like Blockchain, IoT, and AR/VR to create innovative solutions.', tags: ['Innovation', 'Blockchain', 'IoT', 'AR/VR'], keyFeatures: ['Prototyping', 'Feasibility Studies', 'Web3 Integration', 'Immersive Experiences'], link: '#', position: new THREE.Vector3(0, -4, 5), color: 0xcc88ff, shape: 'icosahedron' }];
+
+        // --- Initialization ---
+        function init() {
+            clock = new THREE.Clock();
+            scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x010206, 0.04);
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1500); camera.position.copy(TARGET_POS_HOME);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; canvasContainer.appendChild(renderer.domElement);
+            const ambientLight = new THREE.AmbientLight(0x50709F, 0.4); scene.add(ambientLight);
+            controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.04; controls.screenSpacePanning = false; controls.minDistance = 3; controls.maxDistance = 70; controls.target.copy(TARGET_LOOKAT_HOME); controls.update();
+            raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+            interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 5);
+            const renderScene = new RenderPass( scene, camera ); const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.3, 0.75 ); bloomPass.threshold = 0.05; bloomPass.strength = 0.5; bloomPass.radius = 0.6; composer = new EffectComposer( renderer ); composer.addPass( renderScene ); composer.addPass( bloomPass );
+            createContentObjects(); createBackgroundParticles(); createFallingStars(); populateServiceCards(); createHomeElement(); createDistantCelestials(); createContactElement();
+            updateViewVisibility(currentView); // Set initial visibility
+            window.addEventListener('resize', onWindowResize); window.addEventListener('mousemove', onMouseMove, false); canvasContainer.addEventListener('click', onCanvasClick, false); canvasContainer.addEventListener('pointerdown', stopTween); canvasContainer.addEventListener('wheel', stopTween, { passive: true }); closeDetailButton.addEventListener('click', hideDetailPanel);
+            setupNavigation();
+            setTimeout(() => { loadingScreen.classList.add('fade-out'); }, 600); // Slightly longer timeout to ensure assets load
+            animate();
+        }
+
+        // --- Create 3D Meshes (Unchanged - start hidden) ---
+        function createContentObjects() { contentData.forEach(item => { let geometry; switch (item.shape) { case 'sphere': geometry = new THREE.SphereGeometry(1, 32, 32); break; case 'cube': geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5); break; case 'torus': geometry = new THREE.TorusGeometry(1, 0.4, 16, 100); break; case 'octahedron': geometry = new THREE.OctahedronGeometry(1.2); break; case 'dodecahedron': geometry = new THREE.DodecahedronGeometry(1.2); break; case 'icosahedron': geometry = new THREE.IcosahedronGeometry(1.2); break; default: geometry = new THREE.SphereGeometry(1, 32, 32); } const material = new THREE.MeshStandardMaterial({ color: item.color, metalness: 0.6, roughness: 0.4, emissive: item.color, emissiveIntensity: 0.15 }); const mesh = new THREE.Mesh(geometry, material); mesh.position.copy(item.position); mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI); mesh.userData = item; mesh.visible = false; scene.add(mesh); interactiveObjects.push(mesh); if (item.type === 'project') projectMeshes.push(mesh); if (item.type === 'service') serviceMeshes[item.id] = mesh; }); }
+        // --- Create Special 3D Elements ---
+        function createHomeElement() { const geometry = new THREE.IcosahedronGeometry(2.2, 3); const material = new THREE.MeshStandardMaterial({ color: 0x70b0ff, emissive: 0x5090dd, emissiveIntensity: 0.6, metalness: 0.1, roughness: 0.5, transparent: true, opacity: 0.8, fog: false }); homeNebula = new THREE.Mesh(geometry, material); homeNebula.position.set(0, 0.5, 0); homeNebulaLight = new THREE.PointLight(0x90caff, 2.5, 18); homeNebula.add(homeNebulaLight); scene.add(homeNebula); homeNebula.visible = false; }
+        function createContactElement() { const geometry = new THREE.TorusKnotGeometry(1.5, 0.3, 100, 16); const material = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x8f00ff, emissiveIntensity: 0.6, wireframe: true, metalness: 0.8, roughness: 0.5 }); contactElement = new THREE.Mesh(geometry, material); contactElement.position.copy(TARGET_LOOKAT_CONTACT).add(new THREE.Vector3(0,0,-1)); contactElement.visible = false; scene.add(contactElement); }
+        function createDistantCelestials() {
+             const textureLoader = new THREE.TextureLoader();
+             // Using a placeholder - REPLACE with your actual texture URL
+             const nebulaTexture = textureLoader.load("https://media.istockphoto.com/id/1332513773/photo/set-of-blue-glowing-plasma-energy-objects-in-space.jpg?s=2048x2048&w=is&k=20&c=Ko5rxcT8SJOWwfgXV4ak9UvG9aWKaIzSYiYTMVakaFs=", (texture) => { texture.wrapS = texture.wrapT = THREE.RepeatWrapping; console.log("Placeholder texture loaded."); }, undefined, (err) => { console.error("Error loading placeholder texture:", err); });
+             const distantCelestialCount = 6; const celestialSize = 250; const distance = 600; // Further out
+             for (let i = 0; i < distantCelestialCount; i++) { const material = new THREE.MeshBasicMaterial({ map: nebulaTexture, transparent: true, opacity: Math.random() * 0.2 + 0.05, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }); const geometry = new THREE.PlaneGeometry(celestialSize, celestialSize); const plane = new THREE.Mesh(geometry, material); plane.position.set( (Math.random() - 0.5) * distance * 1.8, (Math.random() - 0.5) * distance * 1.0, -distance + (Math.random() - 0.8) * distance * 0.6 ); plane.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI); plane.scale.setScalar(Math.random() * 1.8 + 0.9); plane.visible = false; scene.add(plane); distantCelestials.push(plane); }
+             const sunGeometry = new THREE.SphereGeometry(8, 16, 16); // Larger sun
+             const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfffadc, fog: false }); distantSun = new THREE.Mesh(sunGeometry, sunMaterial); distantSun.position.set(-distance * 0.9, distance * 0.4, -distance * 1.3); distantSun.visible = false; scene.add(distantSun);
+         }
+
+        // --- Populate Service Cards HTML (Unchanged) ---
+        function populateServiceCards() { const serviceItems = contentData.filter(item => item.type === 'service'); servicesContainer.innerHTML = ''; serviceItems.forEach(service => { const card = document.createElement('div'); card.classList.add('service-card'); card.dataset.id = service.id; let featuresHTML = ''; if (service.keyFeatures && service.keyFeatures.length > 0) { featuresHTML = `<ul>${service.keyFeatures.map(f => `<li>${f}</li>`).join('')}</ul>`; } card.innerHTML = `<h3>${service.title}</h3><p>${service.description}</p>${featuresHTML}<button class="card-button" data-id="${service.id}">Learn More</button>`; servicesContainer.appendChild(card); card.querySelector('.card-button').addEventListener('click', (e) => { e.stopPropagation(); const serviceData = contentData.find(item => item.id === e.target.dataset.id); if (serviceData) { showDetailPanel(serviceData); } }); }); }
+
+        // --- Create Particles ---
+         function createBackgroundParticles() { const particleCount = 6000; const geometry = new THREE.BufferGeometry(); const positions = new Float32Array(particleCount * 3); const colors = new Float32Array(particleCount * 3); const color = new THREE.Color(); originalBgParticlePos = new Float32Array(particleCount * 3); for (let i = 0; i < particleCount; i++) { const i3 = i * 3; positions[i3] = (Math.random() - 0.5) * 180; positions[i3 + 1] = (Math.random() - 0.5) * 180; positions[i3 + 2] = (Math.random() - 0.5) * 180; color.setHSL(0.6 + Math.random() * 0.1, 0.7, 0.7 + Math.random() * 0.2); colors[i3] = color.r; colors[i3 + 1] = color.g; colors[i3 + 2] = color.b; originalBgParticlePos[i3] = positions[i3]; originalBgParticlePos[i3 + 1] = positions[i3 + 1]; originalBgParticlePos[i3 + 2] = positions[i3 + 2]; } geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); const particleMaterial = new THREE.PointsMaterial({ size: 0.12, sizeAttenuation: true, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true }); backgroundParticles = new THREE.Points(geometry, particleMaterial); scene.add(backgroundParticles); }
+         function createFallingStars() { const geometry = new THREE.BufferGeometry(); const positions = new Float32Array(fallingStarCount * 3); fallingStarVelocities = new Float32Array(fallingStarCount); for(let i=0; i < fallingStarCount; i++) { const i3 = i * 3; positions[i3] = (Math.random() - 0.5) * 150; positions[i3 + 1] = Math.random() * fallingStarResetY * 2 - fallingStarResetY; /* Start +/- */ positions[i3 + 2] = (Math.random() - 0.5) * 150; fallingStarVelocities[i] = (Math.random() * 0.5 + 0.5) * fallingStarSpeed; } geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }); fallingStars = new THREE.Points(geometry, material); fallingStars.visible = false; scene.add(fallingStars); }
+
+         // --- Navigation & View Control ---
+         function setupNavigation() { /* Unchanged */ document.getElementById('nav-home').addEventListener('click', () => setActiveNav('home', document.getElementById('nav-home'), TARGET_POS_HOME, TARGET_LOOKAT_HOME)); document.getElementById('nav-projects').addEventListener('click', () => setActiveNav('projects', document.getElementById('nav-projects'), TARGET_POS_PROJECTS, TARGET_LOOKAT_PROJECTS)); document.getElementById('nav-services').addEventListener('click', () => setActiveNav('services', document.getElementById('nav-services'), TARGET_POS_SERVICES_VIEW, TARGET_LOOKAT_SERVICES_VIEW)); document.getElementById('nav-contact').addEventListener('click', () => setActiveNav('contact', document.getElementById('nav-contact'), TARGET_POS_CONTACT, TARGET_LOOKAT_CONTACT)); document.getElementById('nav-home').classList.add('active'); }
+         function setActiveNav(viewName, clickedButton, targetPos, targetLookAt) { /* Unchanged */ if (currentView === viewName && !currentTween) return; currentView = viewName; navButtons.forEach(btn => btn.classList.remove('active')); clickedButton.classList.add('active'); updateViewVisibility(viewName); animateCameraTo(targetPos, targetLookAt); }
+
+         // *** UPDATED View Visibility Logic ***
+         function updateViewVisibility(viewName) {
+             particlesInteract = (viewName === 'home'); // Enable interaction only on home
+
+             // HTML Panels
+             homeInfoOverlay.classList.toggle('visible', viewName === 'home');
+             servicesContainer.classList.toggle('visible', viewName === 'services');
+             contactInfoContainer.classList.toggle('visible', viewName === 'contact');
+
+             // Special Home 3D Elements
+             if (homeNebula) homeNebula.visible = (viewName === 'home');
+             if (fallingStars) fallingStars.visible = (viewName === 'home');
+             distantCelestials.forEach(c => c.visible = (viewName === 'home'));
+             if (distantSun) distantSun.visible = (viewName === 'home');
+
+             // Contact Element
+             if (contactElement) contactElement.visible = (viewName === 'contact');
+
+              // Project & Service 3D Objects
+              const showInteractive = (viewName === 'projects');
+              projectMeshes.forEach(mesh => mesh.visible = showInteractive);
+              Object.values(serviceMeshes).forEach(mesh => mesh.visible = showInteractive);
+
+              // Ensure interactive are hidden if service cards are shown (redundant maybe, but safe)
+              if (viewName === 'services') {
+                  projectMeshes.forEach(mesh => mesh.visible = false);
+                  Object.values(serviceMeshes).forEach(mesh => mesh.visible = false);
+              }
+          }
+
+         function animateCameraTo(targetPosition, targetLookAt) { /* Unchanged */ const currentPos = camera.position.clone(); const currentLookAt = controls.target.clone(); const duration = 1800; stopTween(); currentTween = new TWEEN.Tween({ pos: currentPos, look: currentLookAt }).to({ pos: targetPosition, look: targetLookAt }, duration).easing(TWEEN.Easing.Quadratic.InOut).onUpdate((obj) => { camera.position.copy(obj.pos); controls.target.copy(obj.look); controls.update(); }).onComplete(() => { controls.update(); currentTween = null; }).start(); }
+         function stopTween() { /* Unchanged */ if (currentTween) { currentTween.stop(); currentTween = null; } }
+
+        // --- Event Handlers ---
+        function onWindowResize() { /* Unchanged */ camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize( window.innerWidth, window.innerHeight ); }
+        function onMouseMove( event ) { /* Unchanged */ mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1; mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; }
+        function onCanvasClick(event) { /* Unchanged */ if (currentView !== 'projects' || detailPanel.classList.contains('visible')) return; raycaster.setFromCamera( mouse, camera ); const visibleInteractives = interactiveObjects.filter(obj => obj.visible); const intersects = raycaster.intersectObjects( visibleInteractives ); if ( intersects.length > 0 ) { stopTween(); const clickedObject = intersects[0].object; showDetailPanel(clickedObject.userData); const targetPos = clickedObject.position.clone().add(new THREE.Vector3(0, 0, 5)); animateCameraTo(targetPos, clickedObject.position); } }
+        function updateHoverEffect() { /* Unchanged */ if (currentView !== 'projects' || homeInfoOverlay.classList.contains('visible') || servicesContainer.classList.contains('visible') || contactInfoContainer.classList.contains('visible') || detailPanel.classList.contains('visible')) { if (INTERSECTED) { INTERSECTED.material.emissiveIntensity = INTERSECTED.userData.originalIntensity || 0.15; INTERSECTED = null; document.body.style.cursor = 'default'; } return; } raycaster.setFromCamera( mouse, camera ); const visibleInteractives = interactiveObjects.filter(obj => obj.visible); const intersects = raycaster.intersectObjects( visibleInteractives ); if ( intersects.length > 0 ) { const newIntersected = intersects[0].object; if ( INTERSECTED !== newIntersected ) { if ( INTERSECTED ) { INTERSECTED.material.emissiveIntensity = INTERSECTED.userData.originalIntensity || 0.15; } INTERSECTED = newIntersected; INTERSECTED.userData.originalIntensity = INTERSECTED.material.emissiveIntensity; INTERSECTED.material.emissiveIntensity = 0.7; document.body.style.cursor = 'pointer'; } } else { if ( INTERSECTED ) { INTERSECTED.material.emissiveIntensity = INTERSECTED.userData.originalIntensity || 0.15; } INTERSECTED = null; document.body.style.cursor = 'default'; } }
+
+        // --- Detail Panel Functions (Unchanged) ---
+        function showDetailPanel(data) { detailTitle.textContent = data.title || "Details"; detailDescription.textContent = data.description; detailTags.innerHTML = ''; if (data.tags && data.tags.length > 0) { data.tags.forEach(tagText => { const tagElement = document.createElement('span'); tagElement.classList.add('tag'); tagElement.textContent = tagText; detailTags.appendChild(tagElement); }); detailTags.style.display = 'block'; } else { detailTags.style.display = 'none'; } if (data.link && data.link !== '#') { detailLink.href = data.link; detailLink.style.display = 'block'; detailLink.textContent = data.type === 'project' ? 'Visit Project' : (data.type === 'service' ? 'Request Info' : 'Visit Link'); detailLink.target = '_blank'; } else { detailLink.style.display = 'none'; } detailPanel.classList.add('visible'); }
+        function hideDetailPanel() { detailPanel.classList.remove('visible'); }
+
+        // --- Particle & Nebula Interaction Logic ---
+        function handleHomeInteractions() {
+            if (currentView !== 'home' || !backgroundParticles || !backgroundParticles.geometry) return; // Check geometry exists
+
+            if (particlesInteract) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersectsPlane = raycaster.ray.intersectPlane(interactionPlane, tempVector3); // Use tempVector3 for intersect point
+                if (intersectsPlane) {
+                    const mousePos3D = intersectsPlane;
+                    const posAttribute = backgroundParticles.geometry.attributes.position;
+                    const particleCount = posAttribute.count;
+
+                    for (let i = 0; i < particleCount; i++) {
+                         // Use tempVector3_2 for original position to avoid conflict
+                        const originalPos = tempVector3_2.set(originalBgParticlePos[i * 3], originalBgParticlePos[i * 3 + 1], originalBgParticlePos[i * 3 + 2]);
+                        // Use tempVector3 for current position manipulation
+                        const currentPosVec = tempVector3.fromBufferAttribute(posAttribute, i);
+
+                        const distSq = currentPosVec.distanceToSquared(mousePos3D);
+                        let targetPos = originalPos;
+
+                        if (distSq < particleInteractionRadius * particleInteractionRadius) {
+                            const repulsionVec = new THREE.Vector3().subVectors(currentPosVec, mousePos3D).normalize(); // Create new Vector for this calc
+                            const pushAmount = particlePushStrength * (1 - Math.sqrt(distSq) / particleInteractionRadius);
+                            targetPos = new THREE.Vector3().copy(currentPosVec).addScaledVector(repulsionVec, pushAmount); // Create new Vector for target
+                        }
+                        currentPosVec.lerp(targetPos, particleReturnSpeed); // Lerp the current pos copy
+                        posAttribute.setXYZ(i, currentPosVec.x, currentPosVec.y, currentPosVec.z); // Set from the lerped copy
+                    }
+                    posAttribute.needsUpdate = true;
+                }
+             }
+
+            if (homeNebula && homeNebula.visible) {
+                 homeNebula.rotation.y += 0.0015; homeNebula.rotation.x += 0.0008;
+                 const targetLookPoint = new THREE.Vector3(mouse.x * 2, mouse.y * 2, 0.5).unproject(camera);
+                 tempQuaternion.setFromRotationMatrix(new THREE.Matrix4().lookAt(homeNebula.position, targetLookPoint, homeNebula.up));
+                 homeNebula.quaternion.slerp(tempQuaternion, 0.02);
+             }
+        }
+
+        // --- Update Falling Stars ---
+        function updateFallingStars(deltaTime) {
+             if (!fallingStars || !fallingStars.visible) return; // Only run if visible
+             if (!fallingStars.geometry || !fallingStars.geometry.attributes.position) return; // Safety check
+
+             const posAttribute = fallingStars.geometry.attributes.position;
+             const count = posAttribute.count;
+             const speedMultiplier = deltaTime * 60; // Normalize speed
+
+             for (let i = 0; i < count; i++) {
+                 const y = posAttribute.getY(i);
+                 const speed = fallingStarVelocities[i] * speedMultiplier; // Use precalculated velocity
+                 let newY = y - speed;
+
+                 if (newY < -fallingStarResetY) {
+                     newY = fallingStarResetY + Math.random() * 10; // Reset slightly randomized
+                     posAttribute.setX(i, (Math.random() - 0.5) * 150);
+                     posAttribute.setZ(i, (Math.random() - 0.5) * 150);
+                 }
+                 posAttribute.setY(i, newY);
+             }
+             posAttribute.needsUpdate = true;
+         }
+
+
+        // --- Animation Loop ---
+        function animate(time) {
+            requestAnimationFrame(animate);
+            const deltaTime = clock.getDelta();
+            TWEEN.update(time);
+
+             handleHomeInteractions(); // Handles bg particles/nebula if currentView is 'home'
+             updateFallingStars(deltaTime); // Update falling stars based on deltaTime if visible
+
+             if (contactElement && contactElement.visible) { contactElement.rotation.x += 0.003; contactElement.rotation.y += 0.004; }
+             distantCelestials.forEach(c => { if(c.visible) c.rotation.z += 0.0001 * deltaTime * 60; }); // Slow rotation using deltaTime
+             interactiveObjects.forEach(obj => { if(obj.visible) obj.rotation.y += 0.0005; });
+
+            updateHoverEffect();
+            composer.render();
+        }
+
+        // --- Start Initialization ---
+        init();
+
+    </script>
+</body>
+</html>
