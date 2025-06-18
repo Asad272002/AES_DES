@@ -1,50 +1,50 @@
-AES & 3DES Parallel Encryption/Decryption Streamlit App
-Overview
-This Streamlit web app allows users to securely encrypt and decrypt large files using parallelized AES-256 and Triple DES (3DES) algorithms.
+# AES & 3DES Parallel Encryption/Decryption Streamlit App
+
+## Overview
+This Streamlit web app allows users to securely encrypt and decrypt large files using parallelized AES-256 and Triple DES (3DES) algorithms.  
 The app supports chunked processing, parallel execution, and key management within the session.
 
-Features
-Upload files of up to 200MB for encryption/decryption
+## Features
+- Upload files of up to 200MB for encryption/decryption  
+- Choose between AES-256 and 3DES encryption algorithms  
+- Select chunk size (512 KB, 1 MB, 2 MB)  
+- Parallel or serial processing modes  
+- Real-time progress bars during encryption/decryption  
+- Copyable encryption and decryption keys and initialization vectors (IV)  
+- Verification of decrypted file against original  
 
-Choose between AES-256 and 3DES encryption algorithms
+## Installation & Running Locally
 
-Select chunk size (512 KB, 1 MB, 2 MB)
+1. Clone this repository:
 
-Parallel or serial processing modes
+    ```bash
+    git clone https://github.com/Asad272002/AES_DES.git
+    cd AES_DES
+    ```
 
-Real-time progress bars during encryption/decryption
+2. Install dependencies:
 
-Copyable encryption and decryption keys and initialization vectors (IV)
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Verification of decrypted file against original
+3. Run the app:
 
-Installation & Running Locally
-Clone this repository:
+    ```bash
+    streamlit run AES_DES.py
+    ```
 
-bash
-Copy
-git clone https://github.com/yourusername/AES_DES_Streamlit_App.git
-cd AES_DES_Streamlit_App
-Install dependencies:
+## Deployment
 
-bash
-Copy
-pip install -r requirements.txt
-Run the app:
-
-bash
-Copy
-streamlit run AES_DES.py
-Deployment
-This app is designed for deployment on Streamlit Community Cloud.
+This app is designed for deployment on [Streamlit Community Cloud](https://share.streamlit.io).  
 Push your code to GitHub and connect your repo to deploy.
 
-Dependencies
-streamlit
+## Dependencies
 
-cryptography
+- streamlit  
+- cryptography  
+- psutil  
 
-psutil
+## License
 
-License
-MIT License 
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
